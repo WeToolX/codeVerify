@@ -9,8 +9,16 @@ $sign = $_GET['sign'] ?? '';
 
 // 验证签名
 $expected_sign = md5($code . $device . $time . "qiexi666");
+function build_response($status, $data = [], $responseTime = null) {
+    $currentTime = $responseTime ?? time();
+    return array_merge([
+        'code' => $status,
+        'time' => $currentTime,
+        'sign' => md5($status . $currentTime . "qiexi666"),
+    ], $data);
+}
 if ($sign !== $expected_sign) {
-    echo json_encode(['code' => -1, 'time' => time(), 'sign' => md5(time() . "qiexi666")]);
+    echo json_encode(build_response(-1));
     exit;
 }
 
@@ -24,7 +32,7 @@ $code_file = "../ids/$code.json";
 
 // 检查卡密是否存在
 if (!file_exists($code_file)) {
-    echo json_encode(['code' => -100, 'time' => time(), 'sign' => md5(time() . "qiexi666")]);
+    echo json_encode(build_response(-100));
     exit;
 }
 
@@ -33,7 +41,7 @@ $code_data = json_decode(file_get_contents($code_file), true);
 
 // 检查是否为有效的 JSON 格式
 if (json_last_error() !== JSON_ERROR_NONE) {
-    echo json_encode(['code' => -200, 'msg' => 'JSON格式错误', 'time' => time()]);
+    echo json_encode(build_response(-200, ['msg' => 'JSON格式错误']));
     exit;
 }
 
@@ -45,7 +53,7 @@ if (isset($code_data['device'])) {
     // 检查机器码和到期时间
     if ($code_data['device'] !== $device || $currentTime > $code_data['entime']) {
         $state = $currentTime > $code_data['entime'] ? -5 : -2;
-        echo json_encode(['code' => $state, 'time' => $currentTime, 'sign' => md5($currentTime . "qiexi666")]);
+        echo json_encode(build_response($state));
         exit;
     }
     
@@ -63,11 +71,8 @@ if (isset($code_data['device'])) {
 // 计算剩余时长（天数）
 $remainingDays = ($code_data['entime'] - $currentTime) / 86400; // 86400 是一天的秒数
 $t = time();
-echo json_encode([
-    'code' => 0,
+echo json_encode(build_response(0, [
     'codetime' => $code_data['entime'],
     'ms' => "卡密剩余时长: " . floor($remainingDays) . " 天",
-    'time' => $t,
-    'sign' => md5($t . "qiexi666")
-], JSON_UNESCAPED_UNICODE);
+], $t), JSON_UNESCAPED_UNICODE);
 ?>
