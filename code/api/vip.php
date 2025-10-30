@@ -22,11 +22,11 @@ if ($sign !== $expected_sign) {
     exit;
 }
 
-// // 检查时间戳是否过期（超过一分钟）
-// if (abs(time() - $time) > 60) {
-//     echo json_encode(['code' => -1, 'time' => time(), 'sign' => md5(time() . "qiexi666")]);
-//     exit;
-// }
+ // 检查时间戳是否过期（超过一分钟）
+ if (abs(time() - $time) > 60) {
+     echo json_encode(['code' => -1, 'time' => time(), 'sign' => md5(time() . "qiexi666")]);
+exit;
+ }
 
 $code_file = "../ids/$code.json";
 
